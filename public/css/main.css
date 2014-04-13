@@ -1,0 +1,10 @@
+div#ui {
+  position: absolute;
+  background-color:white;
+  bottom: 10px;
+  right: 100px;
+  left: 10px;
+}
+input#time-bar {
+  width: 95%;
+}
