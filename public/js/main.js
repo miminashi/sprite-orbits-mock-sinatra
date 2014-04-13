@@ -1,13 +1,14 @@
 var ge;
 var dates;
 var kicksat;
-var spritesNum = 400;
+var spritesNum = 12;
 var sprites;
 
 google.load("earth", "1", {"other_params":"sensor=false"});
 
 function updateOrbits(){
   $.getJSON("/js/orbits.json", function(data){
+    console.log(data[0].sprites);
     // get Orbits //////////////////////// 
     dates = new Array();
     kicksat = new Array();
@@ -93,50 +94,52 @@ function updateOrbits(){
     // Draw Kick Sat's Orbit End ///////////////////
 
     // Draw Sprites //////////////
-    for(var i = 0; i < sprites.length; i++){
-      if(sprites[i] == undefined){
-        continue;
-      }
-      var lineStringPlacemark = ge.createPlacemark('');
-      var lineString = ge.createLineString('');
-      lineStringPlacemark.setGeometry(lineString);
-      lineString.setTessellate(true);
-      lineString.setAltitudeMode(ge.ALTITUDE_ABSOLUTE);
-
-      // Draw line from KickSat to Sprite.
-      var sp = sprites[i][0];
-      var ks = kicksat[0];
-      //$("#sprites").append("kicksat[" + j + "]:" + ks + "<br>\n");
-      //$("#sprites").append("sprites[" + i + "][" + j + "]:" + sp + "<br>\n");
-      lineString.getCoordinates().pushLatLngAlt(ks[0], ks[1], ks[2]);
-      lineString.getCoordinates().pushLatLngAlt(sp[0], sp[1], sp[2]);
-
-      lineStringPlacemark.setStyleSelector(ge.createStyle(''));
-      var lineStyle = lineStringPlacemark.getStyleSelector().getLineStyle();
-      lineStyle.setWidth(3);
-      lineStyle.getColor().set('9900ffff');  // aabbggrr format
-      ge.getFeatures().appendChild(lineStringPlacemark);
-
-      // Draw Pin
-      var placemark = ge.createPlacemark('');
-      placemark.setName("Sprites[" + i + "]");
-      var icon = ge.createIcon('');
-      icon.setHref("http://tc1078.metawerx.com.au/sp.png");
-      var style = ge.createStyle('');
-      style.getIconStyle().setIcon(icon);
-      style.getIconStyle().setScale(1.0);
-      placemark.setStyleSelector(style);
-
-      var point = ge.createPoint('');
-      point.setLatitude(sp[0]);
-      point.setLongitude(sp[1]);
-      point.setAltitudeMode(ge.ALTITUDE_ABSOLUTE);
-      point.setAltitude(sp[2]);
-      placemark.setGeometry(point);
-      ge.getFeatures().appendChild(placemark);
+    for(var i = 0; i < sprites.length; i++) {     
+      drawSprite(sprites[i]);
     }
-
   });
+}
+
+function drawSprite(sprite) {
+  var lineStringPlacemark = ge.createPlacemark('');
+  var lineString = ge.createLineString('');
+  lineStringPlacemark.setGeometry(lineString);
+  lineString.setTessellate(true);
+  lineString.setAltitudeMode(ge.ALTITUDE_ABSOLUTE);
+
+  // Draw line from KickSat to Sprite.
+  var sp = sprite[0];
+  console.log(sp);
+  var ks = kicksat[0];
+  //$("#sprites").append("kicksat[" + j + "]:" + ks + "<br>\n");
+  //$("#sprites").append("sprites[" + i + "][" + j + "]:" + sp + "<br>\n");
+  lineString.getCoordinates().pushLatLngAlt(ks[0], ks[1], ks[2]);
+  lineString.getCoordinates().pushLatLngAlt(sp[0], sp[1], sp[2]);
+
+  lineStringPlacemark.setStyleSelector(ge.createStyle(''));
+  var lineStyle = lineStringPlacemark.getStyleSelector().getLineStyle();
+  lineStyle.setWidth(3);
+  lineStyle.getColor().set('9900ffff');  // aabbggrr format
+  ge.getFeatures().appendChild(lineStringPlacemark);
+
+  // Draw Pin
+  var placemark = ge.createPlacemark('');
+  //placemark.setName("Sprites[" + i + "]");
+  placemark.setName("Sprite");
+  var icon = ge.createIcon('');
+  icon.setHref("http://tc1078.metawerx.com.au/sp.png");
+  var style = ge.createStyle('');
+  style.getIconStyle().setIcon(icon);
+  style.getIconStyle().setScale(1.0);
+  placemark.setStyleSelector(style);
+
+  var point = ge.createPoint('');
+  point.setLatitude(sp[0]);
+  point.setLongitude(sp[1]);
+  point.setAltitudeMode(ge.ALTITUDE_ABSOLUTE);
+  point.setAltitude(sp[2]);
+  placemark.setGeometry(point);
+  ge.getFeatures().appendChild(placemark);
 }
 
 function init() {
