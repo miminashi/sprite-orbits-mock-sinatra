@@ -1,17 +1,13 @@
+// settings
+var updateInterval = 1000;
+var spritesNum = 12;
+
 var ge;
 var dates;
 var kicksatPositions;
 var Kicksat;
-//var Kicksat = {
-//  placemark: null,
-//  locations: [],
-//  orbit: null,
-//  position: {}
-//};
-var spritesNum = 12;
-var sprites;
+var Sprites = [];
 var camera;
-
 var index;
 var datas;
 
@@ -53,7 +49,9 @@ function updateOrbits(){
 
     initCamera();
     Kicksat = initKicksat();
-    console.log(Kicksat);
+    for(var i = 0; i < data.length; i++) {
+      Sprites.push(initSprite());
+    }
 
     //kicksatPosition = data[0].kicksat;
     //Kicksat.updatePosition(kicksatPosition.lat, kicksatPosition.lng, kicksatPosition.alt);
@@ -73,18 +71,27 @@ function updateOrbits(){
 }
 
 function timeoutHandler() {
-  console.log("timeoutHandler");
   if(index < datas.length) {
     var data = datas[index];
-    console.log(data);
+
+    // update KickSat position
     kicksatPosition = data.kicksat;
-    console.log(kicksatPosition);
     Kicksat.updatePosition(kicksatPosition.lat, kicksatPosition.lng, kicksatPosition.alt);
-    Kicksat.updateOrbit(kicksatPosition.lat, kicksatPosition.lng, kicksatPosition.alt);
-    index = index + 1;
+
+    for(var i = 0; i < data.sprites.length; i++) {
+      spritePosition = data.sprites[i];
+      Sprites[i].updatePosition(spritePosition.lat, spritePosition.lng, spritePosition.alt);
+      //console.log(spritePosition);
+    }
+    //spritePosition = data.sprites[0];
+    //Sprites[0].updatePosition(spritePosition.lat, spritePosition.lng, spritePosition.alt);
+
+    // update offset time
     var time = data.offset;
     $('p#time').text("After Sprites launched: " + time + "sec");
-    setTimeout(timeoutHandler, 1000);
+    
+    index = index + 1;
+    setTimeout(timeoutHandler, updateInterval);
   }
 }
 
@@ -142,16 +149,6 @@ function initKicksat() {
     locations: [],
     lineString: null,
     orbit: null
-    //updatePosition: function(lat, lng, alt) {
-    //  var point = ge.createPoint('');
-    //  point.setLatitude(lat);
-    //  point.setLongitude(lng);
-    //  point.setAltitudeMode(ge.ALTITUDE_ABSOLUTE);
-    //  point.setAltitude(alt);
-    //  this.placemark.setGeometry(point);
-    //  //this.updateOrbit(lat, lng, alt);
-    //  setCameraPosition(lat, lng, alt);
-    //}
   };
 
   _kicksat.updatePosition = function(lat, lng, alt) {
@@ -161,19 +158,11 @@ function initKicksat() {
     point.setAltitudeMode(ge.ALTITUDE_ABSOLUTE);
     point.setAltitude(alt);
     this.placemark.setGeometry(point);
-    //this.updateOrbit(lat, lng, alt);
+    this.updateOrbit(lat, lng, alt);
     setCameraPosition(lat, lng, alt);
   };
 
-  _kicksat.hoge = function() {
-    console.log("hoge");
-  };
-
   _kicksat.updateOrbit = function(lat, lng, alt) {
-    console.log("updateOrbit");
-    //var geometry = this.orbit.getGeometry();
-    //console.log(geometry);
-    //geometry.getCoordinates().pushLatLngAlt(lat, lng, alt);
     this.lineString.getCoordinates().pushLatLngAlt(lat, lng, alt);
   };
 
@@ -181,7 +170,7 @@ function initKicksat() {
   var placemark = ge.createPlacemark('');
   placemark.setName("Kick Sat");
   var icon = ge.createIcon('');
-  icon.setHref("http://localhost:9292/img/ks.png");
+  icon.setHref("http://sprite-orbits-mock-sinatra.herokuapp.com/img/ks.png");
   //icon.setHref("/img/ks.png");
   var style = ge.createStyle('');
   style.getIconStyle().setIcon(icon);
@@ -208,6 +197,43 @@ function initKicksat() {
   
   return _kicksat;
 }
+
+function initSprite() {
+  _sprite = {};
+  _sprite.updatePosition = function(lat, lng, alt) {
+    this.updateIcon(lat, lng, alt);
+    //this.updateOrbit(lat, lng, alt);
+    //setCameraPosition(lat, lng, alt);
+  };
+  _sprite.updateIcon = function(lat, lng, alt) {
+    var point = ge.createPoint('');
+    point.setLatitude(lat);
+    point.setLongitude(lng);
+    point.setAltitudeMode(ge.ALTITUDE_ABSOLUTE);
+    point.setAltitude(alt);
+    this.iconPlacemark.setGeometry(point);
+  }
+  _sprite.updateOrbit = function(lat, lng, lat) {
+
+  };
+
+  // Sprite icon
+  var iconPlacemark = ge.createPlacemark('');
+  //placemark.setName("Kick Sat");
+  var icon = ge.createIcon('');
+  icon.setHref("http://sprite-orbits-mock-sinatra.herokuapp.com/img/sp.png");
+  //icon.setHref("/img/ks.png");
+  var style = ge.createStyle('');
+  style.getIconStyle().setIcon(icon);
+  style.getIconStyle().setScale(1.0);
+  iconPlacemark.setStyleSelector(style);
+  ge.getFeatures().appendChild(iconPlacemark);
+  _sprite.iconPlacemark = iconPlacemark;
+
+  return _sprite;
+}
+
+
 
 function drawKicksat2(kicksatPosition) {
   var point = ge.createPoint('');
@@ -282,7 +308,7 @@ function drawSprite(sprite) {
 
   // Draw line from KickSat to Sprite.
   var sp = sprite[0];
-  console.log(sp);
+  //console.log(sp);
   var ks = kicksatPositions[0];
   //$("#sprites").append("kicksatPositions[" + j + "]:" + ks + "<br>\n");
   //$("#sprites").append("sprites[" + i + "][" + j + "]:" + sp + "<br>\n");
