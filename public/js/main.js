@@ -1,9 +1,9 @@
 // settings
-var updateInterval = 1000;
+var updateInterval = 100;
 var spritesNum = 12;
 
 var ge;
-var dates;
+var dates = [];
 var kicksatPositions;
 var Kicksat;
 var Sprites = [];
@@ -11,7 +11,7 @@ var camera;
 var index;
 var datas;
 
-google.load("earth", "1", {"other_params":"sensor=false"});
+//google.load("earth", "1", {"other_params":"sensor=false"});
 
 
 
@@ -19,37 +19,18 @@ function updateOrbits(){
   $.getJSON("/js/orbits.json", function(data){
     console.log("data counts: " + data.length);
     // get Orbits //////////////////////// 
-    dates = new Array();
-    kicksatPositions = new Array();
-    sprites = new Array(spritesNum);
-    for(var i = 0; i < sprites.length; i++){
-      sprites[i] = new Array();
-    }
-
-    //// parse Orbits data //////////////////////
-    //var latestOffset = undefined;
-    //for (var i = data.length - 1; i >= 0; i--){
-    //  if(latestOffset == undefined){
-    //    latestOffset = data[i].offset;
-    //  }
-    //  if(latestOffset - data[i].offset > 30 * 60){ // Its're skipped over 30min ago.
-    //    break;
-    //  }
-    //  dates.push([data[i].date, data[i].offset]);
-    //  var ks = data[i].kicksat;
-    //  kicksatPositions.push([ks.lat, ks.lng, ks.alt]);
-
-    //  var sp = data[i].sprites;
-    //  for(var j = 0; j < sp.length; j++){
-    //    sprites[j].push([sp[j].lat, sp[j].lng, sp[j].alt]);
-    //  }
+    //dates = new Array();
+    //kicksatPositions = new Array();
+    //sprites = new Array(spritesNum);
+    //for(var i = 0; i < sprites.length; i++){
+    //  sprites[i] = new Array();
     //}
-    
+
     datas = data;
 
     initCamera();
     Kicksat = initKicksat();
-    for(var i = 0; i < data.length; i++) {
+    for(var i = 0; i < data[0].sprites.length; i++) {
       Sprites.push(initSprite());
     }
 
@@ -119,8 +100,7 @@ function setCameraPosition(lat, lng, alt) {
   camera.setLatitude(lat - 10.0);
   camera.setLongitude(lng);
   camera.setAltitude(alt + 2000000);
-  //camera.setTilt(camera.getTilt() + 30.0);
-  //camera.setRoll(camera.getRoll() - 30.0);
+  //camera.setAltitude(alt + 4000000);
   ge.getView().setAbstractView(camera);
 }
 
@@ -131,17 +111,17 @@ function setCameraPosition(lat, lng, alt) {
 //  ge.getView().setAbstractView(camera);
 //}
 
-function setCameraPositionByKicksatPosition(kicksatPosition) {
-  //camera.setLatitude(kicksatPosition[0] - 10.0);
-  //camera.setLongitude(kicksatPosition[1]);
-  //camera.setAltitude(kicksatPosition[2] + 2000000);
-  camera.setLatitude(kicksatPosition.lat - 10.0);
-  camera.setLongitude(kicksatPosition.lng);
-  camera.setAltitude(kicksatPosition.alt + 2000000);
-  camera.setTilt(camera.getTilt() + 30.0);
-  camera.setRoll(camera.getRoll() - 30.0);
-  ge.getView().setAbstractView(camera);
-}
+//function setCameraPositionByKicksatPosition(kicksatPosition) {
+//  //camera.setLatitude(kicksatPosition[0] - 10.0);
+//  //camera.setLongitude(kicksatPosition[1]);
+//  //camera.setAltitude(kicksatPosition[2] + 2000000);
+//  camera.setLatitude(kicksatPosition.lat - 10.0);
+//  camera.setLongitude(kicksatPosition.lng);
+//  camera.setAltitude(kicksatPosition.alt + 2000000);
+//  camera.setTilt(camera.getTilt() + 30.0);
+//  camera.setRoll(camera.getRoll() - 30.0);
+//  ge.getView().setAbstractView(camera);
+//}
 
 function initKicksat() {
   var _kicksat = {
@@ -202,8 +182,7 @@ function initSprite() {
   _sprite = {};
   _sprite.updatePosition = function(lat, lng, alt) {
     this.updateIcon(lat, lng, alt);
-    //this.updateOrbit(lat, lng, alt);
-    //setCameraPosition(lat, lng, alt);
+    this.updateOrbit(lat, lng, alt);
   };
   _sprite.updateIcon = function(lat, lng, alt) {
     var point = ge.createPoint('');
@@ -213,8 +192,8 @@ function initSprite() {
     point.setAltitude(alt);
     this.iconPlacemark.setGeometry(point);
   }
-  _sprite.updateOrbit = function(lat, lng, lat) {
-
+  _sprite.updateOrbit = function(lat, lng, alt) {
+    this.lineString.getCoordinates().pushLatLngAlt(lat, lng, alt);
   };
 
   // Sprite icon
@@ -229,6 +208,16 @@ function initSprite() {
   iconPlacemark.setStyleSelector(style);
   ge.getFeatures().appendChild(iconPlacemark);
   _sprite.iconPlacemark = iconPlacemark;
+
+  // Sprite orbit
+  var lineStringPlacemark = ge.createPlacemark('');
+  var lineString = ge.createLineString('');
+  lineStringPlacemark.setGeometry(lineString);
+  lineString.setTessellate(true);
+  lineString.setAltitudeMode(ge.ALTITUDE_ABSOLUTE);
+  ge.getFeatures().appendChild(lineStringPlacemark);
+  _sprite.orbitPlacemark = lineStringPlacemark;
+  _sprite.lineString = lineString;
 
   return _sprite;
 }
@@ -357,5 +346,6 @@ function initCB(instance) {
 function failureCB(errorCode) {
 }
 
+google.load("earth", "1", {"other_params":"sensor=false"});
 google.setOnLoadCallback(init);
 
