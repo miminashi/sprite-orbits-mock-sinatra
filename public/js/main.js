@@ -337,7 +337,7 @@ function init() {
 function initCB(instance) {
   ge = instance;
   ge.getWindow().setVisibility(true);
-  ge.getNavigationControl().setVisibility(ge.VISIBILITY_SHOW);
+  //ge.getNavigationControl().setVisibility(ge.VISIBILITY_SHOW);
   ge.getOptions().setFlyToSpeed(ge.SPEED_TELEPORT);
 
   updateOrbits();

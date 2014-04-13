@@ -12,8 +12,17 @@ p#time {
   position: absolute;
   background-color: rgba(255, 255, 255, 0.8);
   top: 10px;
-  left: 10px;
+  right: 10px;
   margin: 0;
   padding: 5px;
   border-radius: 5px;
+}
+p#subtitle {
+  border: 0;
+  margin: 0;
+  color: #92C300;
+  text-align: right;
+}
+div#logo {
+  position: absolute;
 }
